@@ -8,6 +8,7 @@
 # Mikrotik Proxmox
 - [ ] RSC bugs
 - [ ] Shell parsing issue
+- [ ] qm warning regarding tap*** interface (second VM interface without a bridge)
 
 # Mikrotik Box Public 
 - [ ] README
