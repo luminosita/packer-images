@@ -1,0 +1,1 @@
+../../common/rsc/certificates.rsc

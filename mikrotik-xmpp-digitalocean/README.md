@@ -1,0 +1,1 @@
+https://www.digitalocean.com/community/developer-center/configure-mikrotik-cloud-host-router-chr-as-vpn-nat-gateway-on-digitalocean

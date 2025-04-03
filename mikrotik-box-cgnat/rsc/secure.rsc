@@ -1,0 +1,1 @@
+../../common/rsc/secure.rsc

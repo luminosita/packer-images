@@ -1,0 +1,20 @@
+# Define global variables
+
+:global CN [/system identity get name]
+
+:global OUTINT "ether1"
+:global BRIDGEINTERFACES {"ether2"; "ether3"; "ether4"; "ether5"; "wlan1"; "wlan2"};
+
+:global GATEWAY "192.168.50.1"
+:global NETWORK "192.168.50.0"
+:global GATEWAYMASK "192.168.50.1/24"
+:global NETMASK "192.168.50.0/24"
+
+:global DHCPPOOL "192.168.50.150-192.168.50.254"
+
+:global SSHPORT 22
+
+:global WPA2KEY "maki3011"
+
+:global ADMINUSER "kundun"
+:global ADMINPASS "Y2k8SjONCWqwX32"

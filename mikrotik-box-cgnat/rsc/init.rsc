@@ -1,0 +1,1 @@
+../../common/rsc/init.rsc
