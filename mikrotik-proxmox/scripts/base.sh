@@ -39,6 +39,7 @@ qemu-img convert \
 
 qm create $id --name $name \
 	--net0 virtio,bridge=vmbr0 \
+	--net1 virtio \
 	--bootdisk virtio0 \
 	--machine q35 \
 	--cpu host \
