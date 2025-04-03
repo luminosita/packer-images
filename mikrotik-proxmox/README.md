@@ -52,3 +52,5 @@ $ ssh <new admin>@192.168.50.250
 It should not require password. Public key is used for authentication.
 
 *NOTE:* Web management console at `https://192.168.50.250` will not allow password login for new admin user. Solution is to create separate web admin user if web console is required
+
+Validate Mikrotik configuration for the bridge interface
