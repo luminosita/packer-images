@@ -8,15 +8,13 @@
 :global NETMASK
 
 :global OUTINT
-:global BRIDGEINTERFACES
 
 :global DHCPPOOL
 
 :local macAddress [/interface get 0 mac-address]
 
-/log info message="Setting MAC address to bridge interface"
-
 #Define bridge with MAC address
+/log info message="Setting MAC address to bridge interface"
 /interface bridge
 :if ([:len [find]] = 0) do={
     add admin-mac=$macAddress auto-mac=no comment=defconf name=bridge
@@ -25,25 +23,29 @@
 }
 
 #Define bridge for all present network interfaces
+/log info message="Add all available ether and wlan interface to bridge except out interface"
 /interface bridge port
-:foreach interface in=$BRIDGEINTERFACES do={
-    :if ([:len [find where interface=$interface]] = 0) do={
+:foreach interface in=[/interface/find where type="ether" or type="wlan"] do={
+    :if ([/interface/get $interface name] != $OUTINT) do={
         add bridge=bridge comment=defconf interface=$interface
     }
 }
 
 #Remove output interface from bridge
-:if ([:len [find where interface=$OUTINT]] > 0) do={
-    remove [find where interface=$OUTINT]
+/log info message="Removing out interface from bridge"
+:local outint [find where bridge=bridge and interface=$OUTINT]
+:if ($outint != "") do={
+    remove $outint
 }
 
 /log info message="Setting main IP address"
 #Set main IP address, dhcp and vpn pools, dhcp server
 /ip address
-:if ([:len [find]] = 0) do={
+:local bridgeIp [find where interface=bridge]
+:if ($bridgeIp = "") do={
     add address=$GATEWAYMASK comment=defconf interface=bridge network=$NETWORK
 } else={
-    set 0 address=$GATEWAYMASK comment=defconf interface=bridge network=$NETWORK
+    set $bridgeIp address=$GATEWAYMASK comment=defconf interface=bridge network=$NETWORK
 }
 
 /log info message="Setting main dhcp pool"
@@ -56,10 +58,11 @@
 
 /log info message="Assign dhcp pool to bridge"
 /ip dhcp-server
-:if ([:len [find]] = 0) do={
+:local bridgeDhcp [find where interface=bridge]
+:if ($bridgeDhcp = "") do={
     add address-pool="DHCPPOOL" interface=bridge name=dhcp1
 }  else={
-    set 0 address-pool="DHCPPOOL" interface=bridge name=dhcp1
+    set $bridgeDhcp address-pool="DHCPPOOL" interface=bridge name=dhcp1
 }
 
 /log info message="Assign network to bridge"

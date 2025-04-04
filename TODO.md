@@ -6,9 +6,8 @@
 # Mikrotik Box CGNAT
 
 # Mikrotik Proxmox
-- [ ] RSC bugs
+- [ ] "script error: unable to load key file (wrong format or bad passphrase)"
 - [ ] Shell parsing issue
-- [ ] qm warning regarding tap*** interface (second VM interface without a bridge)
 - [ ] Export raw disk as qcow2 and use it for GNS3???
 
 # Mikrotik Box Public 

@@ -3,7 +3,6 @@
 :global CN [/system identity get name]
 
 :global OUTINT "ether1"
-:global BRIDGEINTERFACES {"ether2"};
 
 :global GATEWAY "172.16.0.1"
 :global NETWORK "172.16.0.0"
