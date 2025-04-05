@@ -11,9 +11,4 @@
 
 :global DHCPPOOL "192.168.50.150-192.168.50.254"
 
-:global SSHPORT 22
-
 :global WPA2KEY "maki3011"
-
-:global ADMINUSER "kundun"
-:global ADMINPASS "Y2k8SjONCWqwX32"

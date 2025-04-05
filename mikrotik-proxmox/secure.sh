@@ -32,11 +32,11 @@ CHR_IP=$ip_cidr
 TEMP_PASS=$password
 
 echo "Coping scripts to Mikrotik VM ..."
-sshpass -p $TEMP_PASS scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rsc/*.rsc admin@$CHR_IP:/
+sshpass -p $TEMP_PASS scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rsc/secure/*.rsc tmp/id_rsa.pub admin@$CHR_IP:/
 sleep 2
 
 echo "Running setup script..."
-sshpass -p $TEMP_PASS ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@$CHR_IP "/system/script/add name=\"setup\" source=[/file get [/file find where name=\"setup.rsc\"] contents];/system/script/run [find name=\"setup\"];/system/script/remove [find name=\"setup\"]"
+sshpass -p $TEMP_PASS ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@$CHR_IP "/system/script/add name=\"secure\" source=[/file get [/file find where name=\"secure.rsc\"] contents];/system/script/run [find name=\"secure\"];/system/script/remove [find name=\"secure\"]"
 sleep 5
 
 ssh root@proxmox.lan "scripts/stop.sh -i "$id"; rm scripts/*"

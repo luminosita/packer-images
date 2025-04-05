@@ -10,8 +10,10 @@ Create or symlink RSA public key at `tmp/id_rsa.pub`. Public key will be assigne
 
 Create vanilla and final Mikrotik VM
 
+Using /bin/bash execute the following
+
 ```bash
-$ source init.sh -i 110 -n Mikrotik -t 111 -v 7.16.1 -s local-lvm -p <NEW PASSWORD>
+$ ./init.sh -i 110 -n Mikrotik -t 111 -v 7.16.1 -s local-lvm -p <NEW PASSWORD>
 ```
 
 Using Proxmox console on the final VM (i.e. id=110) login to Mikrotik shell 
@@ -36,7 +38,7 @@ Columns: ADDRESS, NETWORK, INTERFACE
 Run Mikrotik setup with newly assigned IP address
 
 ```bash
-$ source setup.sh -i 110 -c 192.168.50.250 -p <NEW PASSWORD>
+$ ./setup.sh -i 110 -c 192.168.50.250 -p <NEW PASSWORD>
 ```
 
 ### Verify Setup
@@ -54,3 +56,11 @@ It should not require password. Public key is used for authentication.
 *NOTE:* Web management console at `https://192.168.50.250` will not allow password login for new admin user. Solution is to create separate web admin user if web console is required
 
 Validate Mikrotik configuration for the bridge interface
+
+### Secure Router
+
+If secured router is required execute the following. New user with SSH public key will be deployed and default admin will be removed as specified in `rsc/vars.rsc`
+
+```bash
+$ ./secure.sh -c 192.168.50.250 -p <NEW PASSWORD>
+```

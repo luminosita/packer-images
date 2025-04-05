@@ -42,7 +42,9 @@ $runScript title="nat"
 $runScript title="wireless"
 $runScript title="staticdns"   
 $runScript title="lock"     
-$runScript title="secure"     
+
+#Secure will be executed only per request not as part of regular setup
+#$runScript title="secure"     
 
 /log info message="Removing scheduler ..."
 

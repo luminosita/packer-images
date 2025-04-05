@@ -17,10 +17,8 @@ set ssh disabled=no
 set ssh port=$SSHPORT
 
 /log info message="Adding new admin user ($ADMINUSER)"
-
 /user
 add name=$ADMINUSER password=$ADMINPASSWORD group=full
-remove admin
 
 :local fullname "id_rsa.pub"
 :local pFile [/file find where name=$fullname]
@@ -31,6 +29,9 @@ remove admin
     /user/ssh-keys
     import public-key-file=$fullname user=$ADMINUSER
 }
+
+/log info message="Removing default admin user"
+/user remove admin
 
 /tool 
 mac-server set allowed-interface-list=none
@@ -43,8 +44,10 @@ neighbor discovery-settings set discover-interface-list=none
 proxy set enabled=no
 socks set enabled=no
 upnp set enabled=no
-cloud set ddns-enabled=no update-time=no
 ssh set strong-crypto=yes
+
+#FIXME Difference between 7.8 and 7.18.2 versions
+#/ip/cloud set ddns-enabled=no update-time=no
 
 # /lcd set enabled=no
 

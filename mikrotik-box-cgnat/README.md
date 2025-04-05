@@ -15,8 +15,10 @@ Create or symlink RSA public key at `tmp/id_rsa.pub`. Public key will be assigne
 ### Setup Router
 *NOTE:* Default router IP address is 192.168.88.1
 
+Using /bin/bash execute the following
+
 ```bash
-$ source setup.sh -c 192.168.88.1 -p <NEW PASSWORD>
+$ ./setup.sh -c 192.168.88.1 -p <NEW PASSWORD>
 ```
 
 *NOTE:* Default router admin password is specified at the bottom of the router box (`Password`)
@@ -42,3 +44,11 @@ $ ssh <new admin>@router.lan
 It should not require password. Public key is used for authentication.
 
 *NOTE:* Web management console at `https://router.lan` will not allow password login for new admin user. Solution is to create separate web admin user if web console is required
+
+### Secure Router
+
+If secured router is required execute the following. New user with SSH public key will be deployed and default admin will be removed as specified in `rsc/vars.rsc`
+
+```bash
+$ ./secure.sh -c 192.168.50.1 -p <NEW PASSWORD>
+```

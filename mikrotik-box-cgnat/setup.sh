@@ -31,7 +31,7 @@ TEMP_PASS=$password
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@$CHR_IP
 
 echo "Coping scripts to Mikrotik VM ..."
-sshpass -p $TEMP_PASS scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rsc/*.rsc tmp/id_rsa.pub admin@$CHR_IP:/
+sshpass -p $TEMP_PASS scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rsc/*.rsc admin@$CHR_IP:/
 sleep 2
 
 echo "Running setup script..."

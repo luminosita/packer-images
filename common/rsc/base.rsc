@@ -22,20 +22,20 @@
 	set 0 admin-mac=$macAddress auto-mac=no comment=defconf name=bridge
 }
 
-#Define bridge for all present network interfaces
-/log info message="Add all available ether and wlan interface to bridge except out interface"
-/interface bridge port
-:foreach interface in=[/interface/find where type="ether" or type="wlan"] do={
-    :if ([/interface/get $interface name] != $OUTINT) do={
-        add bridge=bridge comment=defconf interface=$interface
-    }
-}
-
 #Remove output interface from bridge
+/interface bridge port
 /log info message="Removing out interface from bridge"
 :local outint [find where bridge=bridge and interface=$OUTINT]
 :if ($outint != "") do={
     remove $outint
+}
+
+#Define bridge for all present network interfaces
+/log info message="Add all available ether and wlan interface to bridge except out interface"
+:foreach interface in=[/interface/find where type="ether" or type="wlan"] do={
+    :if (([/interface/get $interface name] != $OUTINT) && ([find where interface=$interface and bridge=bridge] = "")) do={
+        add bridge=bridge comment=defconf interface=$interface
+    }
 }
 
 /log info message="Setting main IP address"
