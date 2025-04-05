@@ -6,11 +6,6 @@
 
 :global SSHPORT
 
-/user
-add name=$ADMINUSER password=$defaultAdminPassword group=full
-remove admin
-
-
 /interface list
 add comment=defconf name=WAN
 add comment=defconf name=LAN
