@@ -1,4 +1,4 @@
-# Deploy Mikrotik CHR on Hetzner (with XMPP Firewall)
+# Deploy Mikrotik CHR on Hetzner ( with XMPP Firewall )
 ### Step 1 - Create Vanilla Mikrotik Image
 
 ```bash
