@@ -111,6 +111,6 @@ Connect Mikrotik CHR appliance (eth0) to Cloud (eth0)
 Start appliance and validate configuration via console
 
 ```
-Username: root
-Password: opnsense
+Username: admin
+Password: 
 ```
