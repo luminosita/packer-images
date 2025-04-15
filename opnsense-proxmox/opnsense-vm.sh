@@ -28,6 +28,22 @@ if [ -z "${id}" ] || [ -z "${name}" ] || [ -z "${version}" ] || [ -z "${storage}
     usage
 fi
 
+#UEFI BOOT
+qm create $id \
+	--name $name \
+	--net0 virtio,bridge=vmbr0,queues=4 \
+	--net1 virtio,bridge=vmbr1,queues=4 \
+	--bootdisk scsi0 \
+	--cpu cputype=x86-64-v2-AES,flags=+aes \
+	--ostype l26 \
+    --balloon 2048 \
+	--memory 4096 \
+	--onboot no \
+	--sockets 1 \
+	--cores 4 \
+	--vga serial0 \
+	--serial0 socket
+
 wget https://mirror.fra10.de.leaseweb.net/opnsense/releases/mirror/OPNsense-$version-nano-amd64.img.bz2
 bzip2 -d OPNsense-$version-nano-amd64.img.bz2
 
@@ -37,27 +53,13 @@ qemu-img convert \
     OPNsense-$version-nano-amd64.img \
     OPNsense-$version-nano-amd64.qcow2
 
-qm create $id \
-	--name $name \
-	--net0 virtio,bridge=vmbr1 \
-	--net1 virtio,bridge=vmbr0 \
-	--bootdisk scsi0 \
-	--machine q35 \
-	--cpu host \
-	--ostype l26 \
-    --balloon 1024 \
-	--memory 2048 \
-	--onboot no \
-	--sockets 1 \
-	--cores 4 \
-	--vga serial0 \
-	--serial0 socket
+qemu-img resize OPNsense-$version-nano-amd64.qcow2 +27G
 
 qm disk import $id OPNsense-$version-nano-amd64.qcow2 $storage
 
 qm set $id \
-    --scsihw virtio-scsi-pci \
-    --scsi0 $storage:vm-$id-disk-0,discard=on \
+    --scsihw virtio-scsi-single \
+    --scsi0 $storage:vm-$id-disk-0,discard=on,iothread=1,ssd=1 \
     --boot order=scsi0 \
     --ipconfig0 ip=dhcp \
     --agent 1
