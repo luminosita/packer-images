@@ -89,7 +89,7 @@ if [ $command == "create" ]; then
         --sockets 1 \
         --cores 1
 
-    log "VM created (ID: $id, Name: $vm_name, Vault version: $vault_version, Storage: $storage)"
+    log "VM created (ID: $id, Name: $vm_name, Storage: $storage)"
     log "----------------------------------------"
     sleep 2
 
