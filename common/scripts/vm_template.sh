@@ -43,38 +43,7 @@ function qm_set_options {
         --citype nocloud
 }
 
-if [ -z "$1" ]; then usage; fi
-
-command=$1
-
-shift 1
-
-while getopts ":i:n:s:" o; do
-    case "${o}" in
-        i)
-            id=${OPTARG}
-            # ((s == 45 || s == 90)) || usage
-            ;;
-        n)
-            name=${OPTARG}
-            ;;
-        s)
-            storage=${OPTARG}
-            ;;
-        *)
-            usage
-            ;;
-    esac
-done
-shift $((OPTIND-1))
-
-if [ -z "${id}" ]; then
-    usage
-fi
-
-mkdir -p logs
-
-if [ $command == "create" ]; then
+function create {
     storage=${storage:-"local-lvm"}
 
     setup_cloud_init
@@ -113,8 +82,47 @@ if [ $command == "create" ]; then
     log "----------------------------------------"
 
     rm -f ${image}
-elif [ $command == "destroy" ]; then
+}
+
+function destroy {
     qm destroy $id
+}
+
+if [ -z "$1" ]; then usage; fi
+
+command=$1
+
+shift 1
+
+while getopts ":i:n:s:" o; do
+    case "${o}" in
+        i)
+            id=${OPTARG}
+            # ((s == 45 || s == 90)) || usage
+            ;;
+        n)
+            name=${OPTARG}
+            ;;
+        s)
+            storage=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${id}" ]; then
+    usage
+fi
+
+mkdir -p logs
+
+if [ $command == "create" ]; then
+    create
+elif [ $command == "destroy" ]; then
+    destroy
 else
     usage
 fi
