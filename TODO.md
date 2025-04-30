@@ -34,3 +34,8 @@
 
 # Talos Hetzner
 - [ ] Move from snapshot-hetzner-talos
+
+# Alpine Vault
+- Load ssh-key from file (sed replacement)
+
+# Ubuntu Generic

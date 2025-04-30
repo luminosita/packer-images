@@ -2,8 +2,6 @@
 
 set -e
 
-usage() { echo "Usage: $0 -i vm_id -n name -s storage";  echo "Example: $0 -i 100 -n alpine-vault -s local-lvm " 1>&2; exit 1; }
-
 function usage {
 	# Display Help
 	echo "Install script for Vault Cluster"
@@ -24,7 +22,7 @@ function usage {
 
 
 # Log file
-LOG_FILE="template_creation_$(date +'%Y%m%d_%H%M%S').log"
+LOG_FILE="logs/template_creation_$(date +'%Y%m%d_%H%M%S').log"
 SSH_KEY_PATH="./gianni_rsa.pub"
 USER="vault"
 
@@ -33,6 +31,8 @@ log() {
   local timestamp=$(date +'[%Y-%m-%d %H:%M:%S]')
   echo "$timestamp $1" | tee -a "$LOG_FILE"
 }
+
+mkdir -p logs
 
 if [ -z "$1" ]; then usage; fi
 
@@ -72,6 +72,31 @@ if [ $command == "create" ]; then
 
     major_version=$(echo $alpine_version | sed -nr 's/([^0-9]*)([0-9]+)\.([0-9]+)\.([0-9]+).*/\2\.\3/p')
 
+    log "Downloading Alpine Cloud image ($alpine_version)"
+    log "----------------------------------------"
+    sleep 2
+
+    image=nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2
+#    image=ubuntu-24.10-server-cloudimg-amd64.img
+
+#    wget https://cloud-images.ubuntu.com/releases/oracular/release/ubuntu-24.10-server-cloudimg-amd64.img
+    wget https://dl-cdn.alpinelinux.org/alpine/v${major_version}/releases/cloud/${image}
+
+    log "Downloading Cloud-init (vault-$vault_version)"
+    log "----------------------------------------"
+    sleep 2
+
+    ci_userdata=/var/lib/vz/snippets/alpine-vault.yaml
+    sshkey=$(cat ${SSH_KEY_PATH})
+    randomStr=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13; echo)
+
+    wget -O $ci_userdata https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/alpine-vault.yaml
+    
+    #Replace SSHKEY placeholder in cloud-init user data yaml file
+    sed -i 's|SSHKEY|'"$sshkey"'|' $ci_userdata
+    sed -i 's|PASSWD|'"$randomStr"'|' $ci_userdata
+    sed -i 's|VAULT_VERSION|'"$vault_version"'|' $ci_userdata
+
     log "Starting template creation"
     log "----------------------------------------"
     sleep 2
@@ -93,21 +118,9 @@ if [ $command == "create" ]; then
     log "----------------------------------------"
     sleep 2
 
-    log "Downloading Alpine Cloud image ($alpine_version)"
-    log "----------------------------------------"
-    sleep 2
+    qemu-img resize ${image} +4G
 
-    wget https://dl-cdn.alpinelinux.org/alpine/v${major_version}/releases/cloud/nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2
-
-    log "Downloading Cloud-init (vault-$vault_version)"
-    log "----------------------------------------"
-    sleep 2
-
-    wget -O /var/lib/vz/snippets/vault-${vault_version}.yaml https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/vault-${vault_version}.yaml
-
-    qemu-img resize nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2 +4G
-
-    qm disk import $id nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2 $storage
+    qm disk import $id ${image} $storage
 
     log "QCow2 disk imported"
     log "----------------------------------------"
@@ -116,17 +129,13 @@ if [ $command == "create" ]; then
     qm set $id \
         --scsihw virtio-scsi-single \
         --scsi0 $storage:vm-$id-disk-0,discard=on,iothread=1,ssd=1 \
-        --ide2 $storage:cloudinit \
         --boot order=scsi0 \
         --serial0 socket --vga serial0 \
         --ipconfig0 ip=dhcp \
-        --citype nocloud \
-        --cicustom "user=local:snippets/vault-${vault_version}.yaml" \
-        --ciuser ${USER} \
-        --sshkeys "$SSH_KEY_PATH" \
-        --agent 1
-
-    qm cloudinit update $id
+        --agent 1 \
+        --ide2 $storage:cloudinit \
+ 	    --cicustom "user=local:snippets/vault-${vault_version}.yaml" \
+        --citype nocloud
 
     log "Waiting for cloud-init drive to be ready..."
     sleep 5
@@ -137,7 +146,7 @@ if [ $command == "create" ]; then
     log "Template $vm_name (ID: $id) created on node \"$HOSTNAME\""
     log "----------------------------------------"
 
-    rm nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2
+    rm -f ${image}
 elif [ $command == "destroy" ]; then
     qm destroy $id
 else

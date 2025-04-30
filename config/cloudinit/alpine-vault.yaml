@@ -1,0 +1,92 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+write_files:
+  - path: /etc/ssh/sshd_config.d/01-harden-ssh.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+  - path: /etc/sudoers.d/vault
+    content: |
+      vault ALL=(ALL) NOPASSWD:ALL
+  - path: /etc/init.d/vault
+    content: |
+      #!/sbin/openrc-run
+
+      name=\$RC_SVCNAME
+      cfgfile="/etc/vault.d/vault.hcl"
+      command="/usr/local/bin/vault"
+      command_args="server -config=/etc/vault.d/vault.hcl"
+      command_user="vault"
+      command_background=true
+      pidfile="/run/vault/vault.pid"
+
+      depend() {
+        need net
+      }
+
+      start_pre() {
+        checkpath --directory --owner \$command_user:\$command_user --mode 0775 /run/\$RC_SVCNAME
+      }
+packages:
+  - qemu-guest-agent
+  - sudo
+  - jq
+  - openssl
+  - curl
+  - gpg
+  - vim
+  - gnupg 
+  - libcap-setcap
+ssh_pwauth: false # sshd service will be configured to accept password authentication method
+password: PASSWD # Set a password for alpine
+chpasswd:
+  expire: false # Don't ask for password reset after the first log-in
+ssh_authorized_keys:
+  - SSHKEY
+users:
+  - default
+  - name: vault
+    lock_passwd: false
+    doas:
+      - permit nopass vault as root
+    ssh_authorized_keys:
+      - SSHKEY
+runcmd:
+  - |
+    rc-update add qemu-guest-agent
+    rc-service qemu-guest-agent start
+    passwd -U vault
+    usermod -p 'PASSWD' vault
+    product="vault"
+    version="VAULT_VERSION"
+    apk add --update --virtual .deps --no-cache gnupg libcap-setcap openssl && \
+        wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_linux_amd64.zip && \
+        wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_SHA256SUMS && \
+        wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_SHA256SUMS.sig && \
+        wget -qO- https://www.hashicorp.com/.well-known/pgp-key.txt | gpg --import && \
+        gpg --verify ${_product}_${_version}_SHA256SUMS.sig ${_product}_${_version}_SHA256SUMS && \
+        grep ${_product}_${_version}_linux_amd64.zip ${_product}_${_version}_SHA256SUMS | sha256sum -c && \
+        unzip ${_product}_${_version}_linux_amd64.zip -d /tmp && \
+        mv /tmp/${_product} /usr/local/bin/${_product} && \
+        rm -f ${_product}_${_version}_linux_amd64.zip ${_product}_${_version}_SHA256SUMS ${_product}_${_version}_SHA256SUMS.sig && \
+        rm -f /tmp/LICENSE.txt && \
+        apk del .deps
+
+    user=vault
+    group=vault
+    vault_config=/etc/vault.d
+    vault_config_file="$vault_config/vault.hcl"
+    vault_data_folder="/var/lib/vault"
+    service_file="/etc/init.d/vault"
+    pidfile="/run/vault/vault.pid"    
+    mkdir -p $vault_config
+    mkdir -p $vault_data_folder
+    chown $user:$group $vault_data_folder
+    setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
+
+    rc-update add vault
+    rc-service vault start
+
