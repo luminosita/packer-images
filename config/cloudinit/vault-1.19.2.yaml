@@ -1,0 +1,28 @@
+#cloud-config
+users:
+  - name: vault
+    lock_passwd: false
+    groups: [ adm, cdrom, dip, plugdev, lxd, sudo ]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+package_update: true
+package_upgrade: true
+timezone: Europe/Belgrade
+packages:
+  - qemu-guest-agent
+  - jq
+  - vim
+write_files:
+  - path: /etc/ssh/sshd_config.d/01-harden-ssh.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+power_state:
+  delay: now
+  mode: reboot
+  message: Rebooting after cloud-init completion
+  condition: true
+runcmd:
+  - rc-update add qemu-guest-agent
+  - localectl set-locale LANG=en_US.UTF-8
