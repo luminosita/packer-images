@@ -77,10 +77,10 @@ if [ $command == "create" ]; then
     sleep 2
 
     image=nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2
-#    image=ubuntu-24.10-server-cloudimg-amd64.img
+#    image=ubuntu-${ubuntu_version}-server-cloudimg-amd64.img
 
-#    wget https://cloud-images.ubuntu.com/releases/oracular/release/ubuntu-24.10-server-cloudimg-amd64.img
     wget https://dl-cdn.alpinelinux.org/alpine/v${major_version}/releases/cloud/${image}
+#    wget https://cloud-images.ubuntu.com/releases/oracular/release/ubuntu-${ubuntu_version}-server-cloudimg-amd64.img
 
     log "Downloading Cloud-init (vault-$vault_version)"
     log "----------------------------------------"
@@ -106,7 +106,6 @@ if [ $command == "create" ]; then
         --name $vm_name \
         --net0 virtio,bridge=vmbr0,queues=4 \
         --bootdisk scsi0 \
-        --cpu cputype=x86-64-v2-AES,flags=+aes \
         --ostype l26 \
         --balloon 256 \
         --memory 512 \
