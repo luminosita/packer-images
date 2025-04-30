@@ -21,13 +21,13 @@ function qm_create_vm {
         --memory 512 \
         --onboot no \
         --sockets 1 \
-        --cores 1    
+        --cores 1
 }
 
 function qm_import_disk {
     qemu-img resize ${2} +4G
 
-    qm disk import ${1} ${2} $storage
+    qm disk import ${1} ${2} ${3}
 }
 
 function qm_set_options {
@@ -77,13 +77,9 @@ mkdir -p logs
 if [ $command == "create" ]; then
     storage=${storage:-"local-lvm"}
 
-    log "Downloading Cloud-init (vault-$vault_version)"
-    log "----------------------------------------"
-    sleep 2
-
     setup_cloud_init
 
-    log "Downloading Alpine Cloud image ($alpine_version)"
+    log "Downloading $CLOUD_IMAGE_NAME Cloud image ($CLOUD_IMAGE_VERSION)"
     log "----------------------------------------"
     sleep 2
 
@@ -99,13 +95,13 @@ if [ $command == "create" ]; then
     log "----------------------------------------"
     sleep 2
 
-    qm_import_disk ${id} ${image} ${ci_userdata_file}
+    qm_import_disk ${id} ${image} ${storage}
 
     log "QCow2 disk imported"
     log "----------------------------------------"
     sleep 2
 
-    qm_set_options ${id} ${storage} ${}
+    qm_set_options ${id} ${storage} ${ci_userdata_file}
 
     log "Waiting for cloud-init drive to be ready..."
     sleep 5
