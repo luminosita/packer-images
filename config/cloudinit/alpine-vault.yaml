@@ -82,6 +82,7 @@ ssh_authorized_keys:
 users:
   - default
   - name: vault
+    password: RANDOMPASSWD
     lock_passwd: false
     doas:
       - permit nopass vault as root
@@ -96,6 +97,4 @@ runcmd:
   - |
     rc-update add qemu-guest-agent
     rc-service qemu-guest-agent start
-    passwd -U vault       #HACK to enable vault SSH login
-    usermod -p 'RANDOMPASSWD' vault     #HACK to enable vault SSH login
     bash /root/install_vault.sh

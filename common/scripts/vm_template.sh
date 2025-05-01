@@ -51,7 +51,7 @@ function create {
 
     wget -O $ci_userdata_path $ci_userdata_url
 
-    apply_cloud_init_patch
+    apply_cloud_init_patch $ci_userdata_path
 
     log "Downloading $CLOUD_IMAGE_NAME Cloud image ($CLOUD_IMAGE_VERSION)"
     log "----------------------------------------"

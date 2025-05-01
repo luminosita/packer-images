@@ -22,14 +22,14 @@ function usage {
     exit 1
 }
 
-function apply_cloud_init_patch {
+apply_cloud_init_patch() {
     sshkey=$(cat ${ssh_key_path})
     randomStr=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13; echo)
 
     #Replace SSHKEY placeholder in cloud-init user data yaml file
-    sed -i 's|SSHKEY|'"$sshkey"'|' $CI_USERDATA_PATH
-    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' $CI_USERDATA_PATH
-    sed -i 's|VAULT_VERSION|'"$vault_version"'|' $CI_USERDATA_PATH
+    sed -i 's|SSHKEY|'"$sshkey"'|' $1
+    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' $1
+    sed -i 's|VAULT_VERSION|'"$vault_version"'|' $1
 }
 
 alpine_version=${ALPINE_VERSION:-"3.21.2"}
