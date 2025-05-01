@@ -1,0 +1,20 @@
+# alpine_version=${ALPINE_VERSION:-"3.21.2"}
+# major_version=$(echo $alpine_version | sed -nr 's/([^0-9]*)([0-9]+)\.([0-9]+)\.([0-9]+).*/\2\.\3/p')
+# vault_version=${VAULT_VERSION:-"1.19.2"}
+
+# ssh_key_path="$DIR/gianni_rsa.pub"
+
+# CI_USERDATA_FILE: alpine-vault.yaml
+
+vm:
+  name: "alpine-vault-1.19.2"
+  storage: "local-lvm"
+image:
+  name: "Alpine"
+  version: 3.21.2
+  url: https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/nocloud_alpine-3.21.2-x86_64-bios-cloudinit-r0.qcow2
+cloud_init:
+  base: "alpine.yaml"
+  patches:
+    - op: remove
+      path: /releases/name=cassandra

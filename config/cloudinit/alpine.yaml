@@ -82,7 +82,7 @@ ssh_authorized_keys:
 users:
   - default
   - name: vault
-    plain_text_passwd: RANDOMPASSWD
+    plain_text_passwd: RANDOMPASSWD     #Account will be locked without password
     lock_passwd: false
     doas:
       - permit nopass vault as root
