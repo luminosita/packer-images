@@ -45,13 +45,8 @@ CLOUD_IMAGE_NAME="Alpine"
 CLOUD_IMAGE_VERSION=$alpine_version
 
 IMAGE=nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2
-#    image=ubuntu-${ubuntu_version}-server-cloudimg-amd64.img
-
-IMAGE_URL=https://dl-cdn.alpinelinux.org/alpine/v${major_version}/releases/cloud/${image}
-# imageUrl=https://cloud-images.ubuntu.com/releases/oracular/release/${image}
+IMAGE_URL=https://dl-cdn.alpinelinux.org/alpine/v${major_version}/releases/cloud/${IMAGE}
 
 CI_USERDATA_FILE=alpine-vault.yaml
-CI_USERDATA_PATH=/var/lib/vz/snippets/${CI_USERDATA_FILE}
-CI_USERDATA_URL=https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/${CI_USERDATA_FILE}
 
 . "$DIR/../common/scripts/vm_template.sh"

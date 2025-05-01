@@ -84,7 +84,3 @@ runcmd:
     mkdir -p $vault_data_folder
     chown $user:$group $vault_data_folder
     setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
-
-    rc-update add vault
-    rc-service vault start
-

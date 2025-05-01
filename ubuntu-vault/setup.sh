@@ -2,7 +2,7 @@
 
 set -e
 
-dir="$(dirname "$0")"
+DIR="$(dirname "$0")"
 
 function usage {
 	# Display Help
@@ -22,37 +22,30 @@ function usage {
     exit 1
 }
 
-function setup_cloud_init {
-    sshkey=$(cat ${SSH_KEY_PATH})
+function apply_cloud_init_patch {
+    sshkey=$(cat ${ssh_key_path})
     randomStr=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13; echo)
 
-    log "Downloading Cloud-init (ubuntu-vault)"
-    log "----------------------------------------"
-    sleep 2
-
-    wget -O $ci_userdata_path https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/${ci_userdata_file}
-
     #Replace SSHKEY placeholder in cloud-init user data yaml file
-    sed -i 's|SSHKEY|'"$sshkey"'|' $ci_userdata_path
-    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' $ci_userdata_path
-    sed -i 's|VAULT_VERSION|'"$vault_version"'|' $ci_userdata_path
+    sed -i 's|SSHKEY|'"$sshkey"'|' $CI_USERDATA_PATH
+    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' $CI_USERDATA_PATH
+    sed -i 's|VAULT_VERSION|'"$vault_version"'|' $CI_USERDATA_PATH
 }
-
-USER="ubuntu"
 
 ubuntu_version=${UBUNTU_VERSION:-"25.04"}
 vault_version=${VAULT_VERSION:-"1.19.2"}
-name=${name:-"ubuntu-vault"}
-vm_name="$name-$vault_version"
+
+ssh_key_path="$DIR/gianni_rsa.pub"
+
+DEFAULT_NAME="ubuntu-vault"
+NAME_SUFFIX=${vault_version}
 
 CLOUD_IMAGE_NAME="Ubuntu"
 CLOUD_IMAGE_VERSION=$ubuntu_version
 
-image=ubuntu-${ubuntu_version}-server-cloudimg-amd64.img
+IMAGE=ubuntu-${ubuntu_version}-server-cloudimg-amd64.img
+IMAGE_URL=https://cloud-images.ubuntu.com/releases/oracular/release/${IMAGE}
 
-imageUrl=https://cloud-images.ubuntu.com/releases/${ubuntu_version}/release/${image}
+CI_USERDATA_FILE=ubuntu-vault.yaml
 
-ci_userdata_file=ubuntu-vault.yaml
-ci_userdata_path=/var/lib/vz/snippets/${ci_userdata_file}
-
-. "$dir/../common/scripts/vm_template.sh"
+. "$DIR/../common/scripts/vm_template.sh"

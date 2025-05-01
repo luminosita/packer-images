@@ -49,7 +49,7 @@ function create {
     log "----------------------------------------"
     sleep 2
 
-    wget -O $CI_USERDATA_PATH $CI_USERDATA_URL
+    wget -O $ci_userdata_path $ci_userdata_url
 
     apply_cloud_init_patch
 
@@ -126,6 +126,9 @@ mkdir -p logs
 
 name=${name:-${DEFAULT_NAME}}
 vm_name="$name-$NAME_SUFFIX"
+
+ci_userdata_path=/var/lib/vz/snippets/${CI_USERDATA_FILE}
+ci_userdata_url=https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/${CI_USERDATA_FILE}
 
 if [ $command == "create" ]; then
     create
