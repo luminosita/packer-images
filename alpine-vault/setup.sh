@@ -2,7 +2,7 @@
 
 set -e
 
-dir="$(dirname "$0")"
+DIR="$(dirname "$0")"
 
 function usage {
 	# Display Help
@@ -22,41 +22,36 @@ function usage {
     exit 1
 }
 
-function setup_cloud_init {
-    sshkey=$(cat ${SSH_KEY_PATH})
+function apply_cloud_init_patch {
+    sshkey=$(cat ${ssh_key_path})
     randomStr=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13; echo)
 
-    log "Downloading Cloud-init (alpine-vault)"
-    log "----------------------------------------"
-    sleep 2
-
-    wget -O $ci_userdata_path https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/${ci_userdata_file}
-
     #Replace SSHKEY placeholder in cloud-init user data yaml file
-    sed -i 's|SSHKEY|'"$sshkey"'|' $ci_userdata_path
-    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' $ci_userdata_path
-    sed -i 's|VAULT_VERSION|'"$vault_version"'|' $ci_userdata_path
+    sed -i 's|SSHKEY|'"$sshkey"'|' $CI_USERDATA_PATH
+    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' $CI_USERDATA_PATH
+    sed -i 's|VAULT_VERSION|'"$vault_version"'|' $CI_USERDATA_PATH
 }
 
-USER="vault"
-
 alpine_version=${ALPINE_VERSION:-"3.21.2"}
+major_version=$(echo $alpine_version | sed -nr 's/([^0-9]*)([0-9]+)\.([0-9]+)\.([0-9]+).*/\2\.\3/p')
 vault_version=${VAULT_VERSION:-"1.19.2"}
-name=${name:-"alpine-vault"}
-vm_name="$name-$vault_version"
+
+ssh_key_path="$DIR/gianni_rsa.pub"
+
+DEFAULT_NAME="alpine-vault"
+NAME_SUFFIX=${vault_version}
 
 CLOUD_IMAGE_NAME="Alpine"
 CLOUD_IMAGE_VERSION=$alpine_version
 
-major_version=$(echo $alpine_version | sed -nr 's/([^0-9]*)([0-9]+)\.([0-9]+)\.([0-9]+).*/\2\.\3/p')
-
-image=nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2
+IMAGE=nocloud_alpine-${alpine_version}-x86_64-bios-cloudinit-r0.qcow2
 #    image=ubuntu-${ubuntu_version}-server-cloudimg-amd64.img
 
-imageUrl=https://dl-cdn.alpinelinux.org/alpine/v${major_version}/releases/cloud/${image}
+IMAGE_URL=https://dl-cdn.alpinelinux.org/alpine/v${major_version}/releases/cloud/${image}
 # imageUrl=https://cloud-images.ubuntu.com/releases/oracular/release/${image}
 
-ci_userdata_file=alpine-vault.yaml
-ci_userdata_path=/var/lib/vz/snippets/${ci_userdata_file}
+CI_USERDATA_FILE=alpine-vault.yaml
+CI_USERDATA_PATH=/var/lib/vz/snippets/${CI_USERDATA_FILE}
+CI_USERDATA_URL=https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/${CI_USERDATA_FILE}
 
-. "$dir/../common/scripts/vm_template.sh"
+. "$DIR/../common/scripts/vm_template.sh"

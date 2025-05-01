@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Log file
-LOG_FILE="$dir/logs/template_creation_$(date +'%Y%m%d_%H%M%S').log"
-SSH_KEY_PATH="$dir/gianni_rsa.pub"
+LOG_FILE="$DIR/logs/template_creation_$(date +'%Y%m%d_%H%M%S').log"
 
 # Function to log messages
 log() {
@@ -11,9 +10,9 @@ log() {
 }
 
 function qm_create_vm {
-   #UEFI BOOT
-    qm create ${1} \
-        --name ${2} \
+   #UEFI BOOT 
+    qm create ${id} \
+        --name ${vm_name} \
         --net0 virtio,bridge=vmbr0,queues=4 \
         --bootdisk scsi0 \
         --ostype l26 \
@@ -25,52 +24,58 @@ function qm_create_vm {
 }
 
 function qm_import_disk {
-    qemu-img resize ${2} +4G
+    qemu-img resize ${IMAGE} +4G
 
-    qm disk import ${1} ${2} ${3}
+    qm disk import ${id} ${IMAGE} ${storage}
 }
-
+  
 function qm_set_options {
-    qm set ${1} \
+    qm set ${id} \
         --scsihw virtio-scsi-single \
-        --scsi0 ${2}:vm-${1}-disk-0,discard=on,iothread=1,ssd=1 \
+        --scsi0 ${storage}:vm-${id}-disk-0,discard=on,iothread=1,ssd=1 \
         --boot order=scsi0 \
         --serial0 socket --vga serial0 \
         --ipconfig0 ip=dhcp \
         --agent 1 \
-        --ide2 ${2}:cloudinit \
- 	    --cicustom "user=local:snippets/$3" \
+        --ide2 ${storage}:cloudinit \
+ 	    --cicustom "user=local:snippets/$CI_USERDATA_FILE" \
         --citype nocloud
-}
+}  
 
 function create {
     storage=${storage:-"local-lvm"}
 
-    setup_cloud_init
+    log "Downloading Cloud-init config ($CI_USERDATA_FILE)"
+    log "----------------------------------------"
+    sleep 2
+
+    wget -O $CI_USERDATA_PATH $CI_USERDATA_URL
+
+    apply_cloud_init_patch
 
     log "Downloading $CLOUD_IMAGE_NAME Cloud image ($CLOUD_IMAGE_VERSION)"
     log "----------------------------------------"
     sleep 2
 
-    wget ${imageUrl}
+    wget ${IMAGE_URL}
 
     log "Starting template creation"
     log "----------------------------------------"
     sleep 2
 
-    qm_create_vm ${id} ${vm_name}
+    qm_create_vm 
 
     log "VM created (ID: $id, Name: $vm_name, Storage: $storage)"
     log "----------------------------------------"
     sleep 2
 
-    qm_import_disk ${id} ${image} ${storage}
+    qm_import_disk 
 
     log "QCow2 disk imported"
     log "----------------------------------------"
     sleep 2
 
-    qm_set_options ${id} ${storage} ${ci_userdata_file}
+    qm_set_options 
 
     log "Waiting for cloud-init drive to be ready..."
     sleep 5
@@ -81,7 +86,7 @@ function create {
     log "Template $vm_name (ID: $id) created on node \"$HOSTNAME\""
     log "----------------------------------------"
 
-    rm -f ${image}
+    rm -f ${IMAGE}
 }
 
 function destroy {
@@ -118,6 +123,9 @@ if [ -z "${id}" ]; then
 fi
 
 mkdir -p logs
+
+name=${name:-${DEFAULT_NAME}}
+vm_name="$name-$NAME_SUFFIX"
 
 if [ $command == "create" ]; then
     create

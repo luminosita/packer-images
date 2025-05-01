@@ -30,9 +30,40 @@ write_files:
       start_pre() {
         checkpath --directory --owner \$command_user:\$command_user --mode 0775 /run/\$RC_SVCNAME
       }
+  - path: /root/install_vault.sh
+    content: |
+      #!/bin/bash
+      product="vault"
+      version="VAULT_VERSION"
+      wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_linux_amd64.zip && \
+        wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_SHA256SUMS && \
+        wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_SHA256SUMS.sig && \
+        wget -qO- https://www.hashicorp.com/.well-known/pgp-key.txt | gpg --import && \
+        gpg --verify ${_product}_${_version}_SHA256SUMS.sig ${_product}_${_version}_SHA256SUMS && \
+        grep ${_product}_${_version}_linux_amd64.zip ${_product}_${_version}_SHA256SUMS | sha256sum -c && \
+        unzip ${_product}_${_version}_linux_amd64.zip -d /tmp && \
+        mv /tmp/${_product} /usr/local/bin/${_product} && \
+        rm -f ${_product}_${_version}_linux_amd64.zip ${_product}_${_version}_SHA256SUMS ${_product}_${_version}_SHA256SUMS.sig && \
+        rm -f /tmp/LICENSE.txt
+
+      user=vault
+      group=vault
+      vault_config=/etc/vault.d
+      vault_config_file="$vault_config/vault.hcl"
+      vault_data_folder="/var/lib/vault"
+      service_file="/etc/init.d/vault"
+      pidfile="/run/vault/vault.pid"    
+      mkdir -p $vault_config
+      mkdir -p $vault_data_folder
+      chown $user:$group $vault_data_folder
+      setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
+
+      rc-update add vault
+      rc-service vault start
 packages:
   - qemu-guest-agent
   - sudo
+  - bash
   - jq
   - openssl
   - curl
@@ -58,33 +89,6 @@ runcmd:
   - |
     rc-update add qemu-guest-agent
     rc-service qemu-guest-agent start
-    passwd -U vault
-    usermod -p 'RANDOMPASSWD' vault
-    product="vault"
-    version="VAULT_VERSION"
-    wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_linux_amd64.zip && \
-      wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_SHA256SUMS && \
-      wget https://releases.hashicorp.com/${_product}/${_version}/${_product}_${_version}_SHA256SUMS.sig && \
-      wget -qO- https://www.hashicorp.com/.well-known/pgp-key.txt | gpg --import && \
-      gpg --verify ${_product}_${_version}_SHA256SUMS.sig ${_product}_${_version}_SHA256SUMS && \
-      grep ${_product}_${_version}_linux_amd64.zip ${_product}_${_version}_SHA256SUMS | sha256sum -c && \
-      unzip ${_product}_${_version}_linux_amd64.zip -d /tmp && \
-      mv /tmp/${_product} /usr/local/bin/${_product} && \
-      rm -f ${_product}_${_version}_linux_amd64.zip ${_product}_${_version}_SHA256SUMS ${_product}_${_version}_SHA256SUMS.sig && \
-      rm -f /tmp/LICENSE.txt
-
-    user=vault
-    group=vault
-    vault_config=/etc/vault.d
-    vault_config_file="$vault_config/vault.hcl"
-    vault_data_folder="/var/lib/vault"
-    service_file="/etc/init.d/vault"
-    pidfile="/run/vault/vault.pid"    
-    mkdir -p $vault_config
-    mkdir -p $vault_data_folder
-    chown $user:$group $vault_data_folder
-    setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
-
-    rc-update add vault
-    rc-service vault start
-
+    passwd -U vault       #HACK to enable vault SSH login
+    usermod -p 'RANDOMPASSWD' vault     #HACK to enable vault SSH login
+    bash /root/install_vault.sh
