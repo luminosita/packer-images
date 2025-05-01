@@ -74,7 +74,7 @@ packages:
   - gnupg 
   - libcap-setcap
 ssh_pwauth: false # sshd service will be configured to accept password authentication method
-password: RANDOMPASSWD # Set a password for alpine
+plain_text_passwd: RANDOMPASSWD # Set a password for alpine
 chpasswd:
   expire: false # Don't ask for password reset after the first log-in
 ssh_authorized_keys:
@@ -82,7 +82,7 @@ ssh_authorized_keys:
 users:
   - default
   - name: vault
-    password: RANDOMPASSWD
+    plain_text_passwd: RANDOMPASSWD
     lock_passwd: false
     doas:
       - permit nopass vault as root
