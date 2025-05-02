@@ -28,7 +28,7 @@ log() {
 }
 
 function qm_create_vm {
-   #UEFI BOOT
+    #UEFI BOOT
     qm create ${vm_id} \
         --name ${vm_name} \
         --net0 virtio,bridge=vmbr0,queues=4 \
