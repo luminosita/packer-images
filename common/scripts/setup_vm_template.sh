@@ -16,7 +16,7 @@ function usage {
     echo "  -s     SSH key file path."
 	echo "Destroy options:"
 	echo "  -i     VM ID."
-	echo
+	echo " "
 
     exit 1
 }
@@ -60,22 +60,34 @@ function qm_set_options {
         --citype nocloud
 }
 
-function apply_patches {
-    cat ${ci_userdata_path} | ./go/bin/yaml-patch -o ${patches_file} | tee ${ci_userdata_patched_path}
-}
-
 function create_patches_file {
     patches_file="tmp/patches.yaml"
 
-    create_patches_file
-
-    cat $config_file_path | yq '.cloud_init.patches' | tee $patches_file
+	cat ${config_file_path} | yq '.cloud_init.patches' | tee ${patches_file} >/dev/null
 
     sshkey=$(cat ${ssh_key_path})
     randomStr=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13; echo)
 
-    sed -i 's|SSHKEY|'"$sshkey"'|' $patches_file
-    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' $patches_file
+    sed -i 's|SSHKEY|'"$sshkey"'|' ${patches_file}
+    sed -i 's|RANDOMPASSWD|'"$randomStr"'|' ${patches_file}
+}
+
+function apply_patches {
+    log "Applying Cloud-init patches"
+    log "----------------------------------------"
+    sleep 2
+
+	create_patches_file
+
+	cat ${ci_userdata_path} | ./go/bin/yaml-patch -o ${patches_file} | tee tmp/temp_result.yaml >/dev/null
+
+	tee ${ci_userdata_path} >/dev/null <<EOF
+#cloud-config
+EOF
+	cat tmp/temp_result.yaml | tee -a ${ci_userdata_path} >/dev/null
+
+	rm -f ${patches_file}
+	rm -f tmp/temp_result.yaml
 }
 
 function create {
@@ -99,7 +111,7 @@ function create {
 
     qm_create_vm
 
-    log "VM created (ID: $id, Name: $vm_name, Storage: $storage)"
+    log "VM created (ID: $vm_id, Name: $vm_name, Storage: $vm_storage)"
     log "----------------------------------------"
     sleep 2
 
@@ -115,16 +127,16 @@ function create {
     sleep 5
 
     log "Converting to template..."
-    qm template $id
+    qm template ${vm_id}
 
-    log "Template $vm_name (ID: $id) created on node \"$HOSTNAME\""
+    log "Template $vm_name (ID: $vm_id) created on node \"$HOSTNAME\""
     log "----------------------------------------"
 
     rm -f ${image_file}
 }
 
 function destroy {
-    qm destroy $id
+    qm destroy ${vm_id}
 
     rm -f $ci_userdata_path
 }
@@ -178,7 +190,6 @@ if [ $command == "create" ]; then
 
 	ci_userdata_file="$vm_id-cloudinit.yaml"
 	ci_userdata_path="/var/lib/vz/snippets/$ci_userdata_file"
-	ci_userdata_patched_path="/var/lib/vz/snippets/patched-$ci_userdata_file"
 	ci_userdata_url="https://github.com/luminosita/packer-snapshots/raw/refs/heads/main/config/cloudinit/$ci_base"
 
     create

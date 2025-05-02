@@ -59,18 +59,16 @@ cloud_init:
             rm -f ${product}_${version}_linux_amd64.zip ${product}_${version}_SHA256SUMS ${product}_${version}_SHA256SUMS.sig && \
             rm -f /tmp/LICENSE.txt
 
-          user=vault
-          group=vault
-          vault_config_folder=/etc/vault.d
-          vault_config_file="$vault_config_folder/vault.hcl"
-          vault_data_folder=/var/lib/vault
-          service_file="/etc/init.d/vault"
-          pidfile="/run/vault/vault.pid"
-          mkdir -p $vault_config_folder
-          mkdir -p $vault_data_folder
-          chown $user:$group $vault_config_folder
-          chown $user:$group $vault_data_folder
-          setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
+            user=vault
+            group=vault
+            vault_config=/etc/vault.d
+            vault_config_file="$vault_config/vault.hcl"
+            service_file="/etc/init.d/vault"
+            pidfile="/run/vault/vault.pid"
+            mkdir -p $vault_config
+            mkdir -p $vault_data_folder
+            chown $user:$group $vault_data_folder
+            setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
     - op: add
       path: /write_files/-
       value:
